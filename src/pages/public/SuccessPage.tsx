@@ -1,9 +1,29 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { CheckCircle, Calendar, Clock, User, Mail, Phone, ArrowLeft } from 'lucide-react'
+import { format, parseISO } from 'date-fns'
+import { ptBR } from 'date-fns/locale/pt-BR'
 
 export default function SuccessPage() {
+  const location = useLocation()
+  const { appointment, professionalName } = location.state || {}
+
+  if (!appointment) {
+    // Fallback se não houver dados do agendamento
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center text-center px-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Agendamento não encontrado</h1>
+          <p className="text-gray-600 mb-6">Não foi possível carregar os detalhes do seu agendamento.</p>
+          <Button asChild>
+            <Link to="/">Voltar ao Início</Link>
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-2xl mx-auto px-4">
@@ -39,7 +59,9 @@ export default function SuccessPage() {
                 <Calendar className="h-5 w-5 text-blue-600" />
                 <div>
                   <p className="text-sm font-medium text-gray-600">Data</p>
-                  <p className="text-sm text-gray-900">--/--/----</p>
+                  <p className="text-sm text-gray-900">
+                    {format(parseISO(appointment.appointment_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                  </p>
                 </div>
               </div>
               
@@ -47,7 +69,7 @@ export default function SuccessPage() {
                 <Clock className="h-5 w-5 text-blue-600" />
                 <div>
                   <p className="text-sm font-medium text-gray-600">Horário</p>
-                  <p className="text-sm text-gray-900">--:--</p>
+                  <p className="text-sm text-gray-900">{appointment.appointment_time.slice(0, 5)}</p>
                 </div>
               </div>
               
@@ -55,7 +77,7 @@ export default function SuccessPage() {
                 <User className="h-5 w-5 text-blue-600" />
                 <div>
                   <p className="text-sm font-medium text-gray-600">Profissional</p>
-                  <p className="text-sm text-gray-900">--</p>
+                  <p className="text-sm text-gray-900">{professionalName || '--'}</p>
                 </div>
               </div>
             </div>

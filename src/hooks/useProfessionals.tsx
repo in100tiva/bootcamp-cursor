@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { parseISO } from 'date-fns'
 import { supabase } from '@/lib/supabase'
 import type { Professional } from '@/lib/supabase'
 
@@ -24,7 +25,8 @@ export function useProfessionalsForDate(selectedDate: string) {
     queryFn: async () => {
       if (!selectedDate) return []
 
-      const dayOfWeek = new Date(selectedDate).getDay()
+      // Usar parseISO para evitar problemas de fuso horário
+      const dayOfWeek = parseISO(selectedDate).getDay()
       
       const { data, error } = await supabase
         .from('professionals')

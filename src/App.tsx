@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Toaster } from 'react-hot-toast'
+import { Toaster } from '@/components/ui/sonner'
 
 // Providers
 import { AuthProvider } from './hooks/useAuth'
@@ -12,6 +12,12 @@ import AppointmentPage from './pages/public/AppointmentPage'
 import SuccessPage from './pages/public/SuccessPage'
 import AdminLoginPage from './pages/admin/AdminLoginPage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
+import AppointmentsPage from './pages/admin/AppointmentsPage'
+import ProfessionalsPage from './pages/admin/ProfessionalsPage'
+import ReportsPage from './pages/admin/ReportsPage'
+
+// Components
+import ProtectedRoute from './components/ProtectedRoute'
 
 // Create a client
 const queryClient = new QueryClient({
@@ -38,19 +44,41 @@ function App() {
                 
                 {/* Admin Routes */}
                 <Route path="/admin/login" element={<AdminLoginPage />} />
-                <Route path="/admin" element={<AdminDashboardPage />} />
+                <Route 
+                  path="/admin" 
+                  element={
+                    <ProtectedRoute>
+                      <AdminDashboardPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/admin/appointments" 
+                  element={
+                    <ProtectedRoute>
+                      <AppointmentsPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/admin/professionals" 
+                  element={
+                    <ProtectedRoute>
+                      <ProfessionalsPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/admin/reports" 
+                  element={
+                    <ProtectedRoute>
+                      <ReportsPage />
+                    </ProtectedRoute>
+                  } 
+                />
               </Routes>
               
-              <Toaster 
-                position="top-right"
-                toastOptions={{
-                  duration: 4000,
-                  style: {
-                    background: '#363636',
-                    color: '#fff',
-                  },
-                }}
-              />
+              <Toaster />
             </div>
           </Router>
         </AppointmentFlowProvider>

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import type { Appointment } from '@/lib/supabase'
-import toast from 'react-hot-toast'
+import { toast } from 'sonner'
 
 export function useAppointments(filters?: {
   date?: string

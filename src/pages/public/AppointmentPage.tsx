@@ -4,6 +4,11 @@ import ProfessionalSelectionStep from '@/components/appointment/ProfessionalSele
 import TimeSelectionStep from '@/components/appointment/TimeSelectionStep'
 import PatientFormStep from '@/components/appointment/PatientFormStep'
 import ConfirmationStep from '@/components/appointment/ConfirmationStep'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { ArrowLeft, Calendar, User, Clock, FileText, CheckCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function AppointmentPage() {
   const { currentStep } = useAppointmentFlow()
@@ -25,55 +30,104 @@ export default function AppointmentPage() {
     }
   }
 
+  const stepTitles = [
+    'Selecionar Data',
+    'Escolher Profissional', 
+    'Selecionar Horário',
+    'Dados Pessoais',
+    'Confirmação'
+  ]
+
+  const stepIcons = [Calendar, User, Clock, FileText, CheckCircle]
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Agendar Consulta
-          </h1>
-          <p className="text-gray-600">
-            Preencha as informações abaixo para agendar sua consulta
-          </p>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <Button variant="ghost" size="sm" className="mb-4" asChild>
+            <a href="/">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Voltar
+            </a>
+          </Button>
+          
+          <div className="text-center space-y-2">
+            <h1 className="text-4xl font-bold text-foreground">
+              Agendar Consulta
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              Preencha as informações abaixo para agendar sua consulta
+            </p>
+          </div>
+        </div>
+
+        {/* Breadcrumb */}
+        <div className="mb-8">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/">Início</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Agendar Consulta</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
         </div>
 
         {/* Progress indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center space-x-4">
-            {[1, 2, 3, 4, 5].map((step) => (
-              <div key={step} className="flex items-center">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    step <= currentStep
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  {step}
-                </div>
-                {step < 5 && (
-                  <div
-                    className={`w-16 h-1 mx-2 ${
-                      step < currentStep ? 'bg-blue-600' : 'bg-gray-200'
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-between mt-2 text-xs text-gray-500 max-w-md mx-auto">
-            <span>Data</span>
-            <span>Profissional</span>
-            <span>Horário</span>
-            <span>Dados</span>
-            <span>Confirmação</span>
-          </div>
-        </div>
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-center">Progresso do Agendamento</CardTitle>
+            <CardDescription className="text-center">
+              Passo {currentStep} de 5
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <Progress value={(currentStep / 5) * 100} className="h-2" />
+            
+            <div className="flex items-center justify-between">
+              {stepTitles.map((title, index) => {
+                const Icon = stepIcons[index]
+                const stepNumber = index + 1
+                const isActive = stepNumber === currentStep
+                const isCompleted = stepNumber < currentStep
+                
+                return (
+                  <div key={stepNumber} className="flex flex-col items-center space-y-2">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                      isCompleted 
+                        ? 'bg-primary text-primary-foreground' 
+                        : isActive 
+                        ? 'bg-primary text-primary-foreground ring-4 ring-primary/20' 
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {isCompleted ? (
+                        <CheckCircle className="w-5 h-5" />
+                      ) : (
+                        <Icon className="w-5 h-5" />
+                      )}
+                    </div>
+                    <span className={`text-xs font-medium text-center max-w-20 ${
+                      isActive ? 'text-foreground' : 'text-muted-foreground'
+                    }`}>
+                      {title}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Step content */}
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          {renderStep()}
-        </div>
+        <Card className="shadow-lg">
+          <CardContent className="p-8">
+            {renderStep()}
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

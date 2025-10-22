@@ -5,11 +5,12 @@ import { useAppointmentFlow } from '@/hooks/useAppointmentFlow'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, Clock, User, Phone, Mail, CreditCard, FileText, CheckCircle } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Calendar, Clock, User, Phone, Mail, CreditCard, FileText, CheckCircle, AlertCircle } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import { ptBR } from 'date-fns/locale/pt-BR'
 import { useNavigate } from 'react-router-dom'
-import toast from 'react-hot-toast'
+import { toast } from 'sonner'
 
 export default function ConfirmationStep() {
   const { data, prevStep, reset } = useAppointmentFlow()
@@ -31,7 +32,7 @@ export default function ConfirmationStep() {
     setIsCreating(true)
     
     try {
-      await createAppointment.mutateAsync({
+      const newAppointment = await createAppointment.mutateAsync({
         professional_id: data.selectedProfessional,
         appointment_date: data.selectedDate,
         appointment_time: data.selectedTime,
@@ -44,7 +45,12 @@ export default function ConfirmationStep() {
       })
 
       toast.success('Agendamento realizado com sucesso!')
-      navigate('/sucesso')
+      navigate('/sucesso', { 
+        state: { 
+          appointment: newAppointment,
+          professionalName: selectedProfessional?.name 
+        } 
+      })
       reset()
     } catch (error) {
       console.error('Erro ao criar agendamento:', error)
@@ -59,14 +65,19 @@ export default function ConfirmationStep() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-          Confirmação do agendamento
-        </h2>
-        <p className="text-gray-600">
-          Revise os dados antes de confirmar seu agendamento
-        </p>
+    <div className="space-y-8">
+      <div className="text-center space-y-4">
+        <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
+          <CheckCircle className="w-8 h-8 text-primary" />
+        </div>
+        <div>
+          <h2 className="text-3xl font-bold text-foreground mb-2">
+            Confirmação do agendamento
+          </h2>
+          <p className="text-muted-foreground text-lg">
+            Revise os dados antes de confirmar seu agendamento
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -74,31 +85,34 @@ export default function ConfirmationStep() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Calendar className="h-5 w-5" />
+              <Calendar className="h-5 w-5 text-primary" />
               <span>Dados do agendamento</span>
             </CardTitle>
+            <CardDescription>
+              Informações sobre sua consulta
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">Data:</span>
-              <span className="text-sm text-gray-900">
+              <span className="text-sm font-medium text-muted-foreground">Data:</span>
+              <span className="text-sm text-foreground">
                 {format(parseISO(data.selectedDate!), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">Horário:</span>
-              <span className="text-sm text-gray-900">{data.selectedTime}</span>
+              <span className="text-sm font-medium text-muted-foreground">Horário:</span>
+              <span className="text-sm text-foreground">{data.selectedTime}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">Profissional:</span>
-              <span className="text-sm text-gray-900">{selectedProfessional?.name}</span>
+              <span className="text-sm font-medium text-muted-foreground">Profissional:</span>
+              <span className="text-sm text-foreground">{selectedProfessional?.name}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">Especialidade:</span>
-              <span className="text-sm text-gray-900">{selectedProfessional?.specialty}</span>
+              <span className="text-sm font-medium text-muted-foreground">Especialidade:</span>
+              <span className="text-sm text-foreground">{selectedProfessional?.specialty}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">Tipo:</span>
+              <span className="text-sm font-medium text-muted-foreground">Tipo:</span>
               <Badge variant="secondary">
                 {getConsultationTypeLabel(patientData.consultation_type)}
               </Badge>
@@ -110,32 +124,35 @@ export default function ConfirmationStep() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <User className="h-5 w-5" />
+              <User className="h-5 w-5 text-primary" />
               <span>Dados do paciente</span>
             </CardTitle>
+            <CardDescription>
+              Suas informações pessoais
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">Nome:</span>
-              <span className="text-sm text-gray-900">{patientData.name}</span>
+              <span className="text-sm font-medium text-muted-foreground">Nome:</span>
+              <span className="text-sm text-foreground">{patientData.name}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">Telefone:</span>
-              <span className="text-sm text-gray-900 flex items-center space-x-1">
+              <span className="text-sm font-medium text-muted-foreground">Telefone:</span>
+              <span className="text-sm text-foreground flex items-center space-x-1">
                 <Phone className="h-3 w-3" />
                 <span>{patientData.phone}</span>
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">Email:</span>
-              <span className="text-sm text-gray-900 flex items-center space-x-1">
+              <span className="text-sm font-medium text-muted-foreground">Email:</span>
+              <span className="text-sm text-foreground flex items-center space-x-1">
                 <Mail className="h-3 w-3" />
                 <span>{patientData.email}</span>
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">CPF:</span>
-              <span className="text-sm text-gray-900 flex items-center space-x-1">
+              <span className="text-sm font-medium text-muted-foreground">CPF:</span>
+              <span className="text-sm text-foreground flex items-center space-x-1">
                 <CreditCard className="h-3 w-3" />
                 <span>{patientData.cpf}</span>
               </span>
@@ -145,43 +162,42 @@ export default function ConfirmationStep() {
       </div>
 
       {/* Informações importantes */}
-      <Card className="bg-amber-50 border-amber-200">
-        <CardHeader>
-          <CardTitle className="text-amber-800 flex items-center space-x-2">
-            <FileText className="h-5 w-5" />
-            <span>Informações importantes</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm text-amber-700">
-            <li className="flex items-start space-x-2">
-              <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <span>Chegue com 15 minutos de antecedência</span>
-            </li>
-            <li className="flex items-start space-x-2">
-              <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <span>Traga um documento de identidade</span>
-            </li>
-            <li className="flex items-start space-x-2">
-              <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <span>Em caso de cancelamento, avise com 24h de antecedência</span>
-            </li>
-            <li className="flex items-start space-x-2">
-              <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <span>Você receberá um email de confirmação</span>
-            </li>
-          </ul>
-        </CardContent>
-      </Card>
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          <div className="space-y-2">
+            <p className="font-medium">Informações importantes:</p>
+            <ul className="space-y-1 text-sm">
+              <li className="flex items-start space-x-2">
+                <CheckCircle className="h-3 w-3 mt-0.5 flex-shrink-0 text-primary" />
+                <span>Chegue com 15 minutos de antecedência</span>
+              </li>
+              <li className="flex items-start space-x-2">
+                <CheckCircle className="h-3 w-3 mt-0.5 flex-shrink-0 text-primary" />
+                <span>Traga um documento de identidade</span>
+              </li>
+              <li className="flex items-start space-x-2">
+                <CheckCircle className="h-3 w-3 mt-0.5 flex-shrink-0 text-primary" />
+                <span>Em caso de cancelamento, avise com 24h de antecedência</span>
+              </li>
+              <li className="flex items-start space-x-2">
+                <CheckCircle className="h-3 w-3 mt-0.5 flex-shrink-0 text-primary" />
+                <span>Você receberá um email de confirmação</span>
+              </li>
+            </ul>
+          </div>
+        </AlertDescription>
+      </Alert>
 
       <div className="flex justify-between pt-4">
-        <Button variant="outline" onClick={prevStep}>
+        <Button variant="outline" onClick={prevStep} size="lg">
           Voltar
         </Button>
         <Button 
           onClick={handleConfirmAppointment}
           disabled={isCreating}
           className="min-w-[160px]"
+          size="lg"
         >
           {isCreating ? 'Confirmando...' : 'Confirmar agendamento'}
         </Button>

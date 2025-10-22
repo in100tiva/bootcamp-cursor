@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { parseISO } from 'date-fns'
 import { supabase } from '@/lib/supabase'
 
 interface AvailableTime {
@@ -12,7 +13,8 @@ export function useAvailableTimes(selectedDate: string, professionalId: string) 
     queryFn: async (): Promise<AvailableTime[]> => {
       if (!selectedDate || !professionalId) return []
 
-      const dayOfWeek = new Date(selectedDate).getDay()
+      // Usar parseISO para evitar problemas de fuso horário
+      const dayOfWeek = parseISO(selectedDate).getDay()
       
       // Buscar horários disponíveis do profissional
       const { data: scheduleData, error: scheduleError } = await supabase
