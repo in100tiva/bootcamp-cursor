@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar'
 import { Separator } from '../../components/ui/separator'
 import { Skeleton } from '../../components/ui/skeleton'
 import { Badge } from '../../components/ui/badge'
-import { LogOut, Users, Calendar, Clock, TrendingUp, Settings, User, ChevronDown, BarChart3, Activity } from 'lucide-react'
+import { LogOut, Users, Calendar, Clock, TrendingUp, Settings, User, ChevronDown, BarChart3, Activity, DollarSign } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { toast } from 'sonner'
 
@@ -340,6 +340,17 @@ export default function AdminDashboardPage() {
                   <div className="text-left">
                     <div className="font-medium">Relatórios</div>
                     <div className="text-xs text-muted-foreground">Análises e métricas</div>
+                  </div>
+                </Button>
+                <Button 
+                  className="w-full justify-start h-12" 
+                  variant="outline"
+                  onClick={() => navigate('/admin/payments')}
+                >
+                  <DollarSign className="w-4 h-4 mr-3" />
+                  <div className="text-left">
+                    <div className="font-medium">Pagamentos</div>
+                    <div className="text-xs text-muted-foreground">Gerenciar pagamentos PIX</div>
                   </div>
                 </Button>
               </div>

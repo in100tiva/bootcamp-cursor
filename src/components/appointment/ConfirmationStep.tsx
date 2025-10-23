@@ -1,81 +1,150 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useProfessionals } from '@/hooks/useProfessionals'
-import { useCreateAppointment } from '@/hooks/useAppointments'
 import { useAppointmentFlow } from '@/hooks/useAppointmentFlow'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Calendar, Clock, User, Phone, Mail, CreditCard, FileText, CheckCircle, AlertCircle } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Calendar, Clock, User, Phone, Mail, CreditCard, FileText, CheckCircle, AlertCircle, PartyPopper } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale/pt-BR'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { supabase } from '@/lib/supabase'
 
 export default function ConfirmationStep() {
   const { data, prevStep, reset } = useAppointmentFlow()
   const { data: professionals } = useProfessionals()
-  const createAppointment = useCreateAppointment()
   const navigate = useNavigate()
   
-  const [isCreating, setIsCreating] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [appointment, setAppointment] = useState<any>(null)
   
   const selectedProfessional = professionals?.find(p => p.id === data.selectedProfessional)
   const patientData = data.patientData!
 
-  const handleConfirmAppointment = async () => {
-    if (!data.selectedDate || !data.selectedTime || !data.selectedProfessional || !data.patientData) {
-      toast.error('Dados incompletos para criar o agendamento')
+  // Buscar appointment criado pelo webhook após pagamento
+  useEffect(() => {
+    if (data.payment_id) {
+      checkAppointmentCreation()
+    }
+  }, [data.payment_id])
+
+  const checkAppointmentCreation = async () => {
+    if (!data.payment_id) {
+      toast.error('ID de pagamento não encontrado')
+      prevStep()
       return
     }
 
-    setIsCreating(true)
+    setIsLoading(true)
     
     try {
-      const newAppointment = await createAppointment.mutateAsync({
-        professional_id: data.selectedProfessional,
-        appointment_date: data.selectedDate,
-        appointment_time: data.selectedTime,
-        patient_name: patientData.name,
-        patient_phone: patientData.phone,
-        patient_email: patientData.email,
-        patient_cpf: patientData.cpf,
-        consultation_type: patientData.consultation_type,
-        status: 'pendente'
-      })
+      // Tentar buscar o appointment por até 30 segundos (polling)
+      let attempts = 0
+      const maxAttempts = 10
+      
+      const checkInterval = setInterval(async () => {
+        attempts++
+        
+        const { data: appointmentData, error } = await supabase
+          .from('appointments')
+          .select('*')
+          .eq('payment_id', data.payment_id)
+          .single()
 
-      toast.success('Agendamento realizado com sucesso!')
-      navigate('/sucesso', { 
-        state: { 
-          appointment: newAppointment,
-          professionalName: selectedProfessional?.name 
-        } 
-      })
-      reset()
+        if (appointmentData) {
+          clearInterval(checkInterval)
+          setAppointment(appointmentData)
+          setIsLoading(false)
+          toast.success('Agendamento confirmado com sucesso!')
+        } else if (attempts >= maxAttempts) {
+          clearInterval(checkInterval)
+          setIsLoading(false)
+          toast.error('Não foi possível confirmar o agendamento. Entre em contato conosco.')
+        }
+      }, 3000) // Verificar a cada 3 segundos
+
+      // Limpar intervalo após timeout
+      setTimeout(() => {
+        clearInterval(checkInterval)
+      }, 30000)
     } catch (error) {
-      console.error('Erro ao criar agendamento:', error)
-      toast.error('Erro ao criar agendamento. Tente novamente.')
-    } finally {
-      setIsCreating(false)
+      console.error('Erro ao verificar agendamento:', error)
+      setIsLoading(false)
+      toast.error('Erro ao verificar agendamento')
     }
+  }
+
+  const handleFinish = () => {
+    navigate('/sucesso', { 
+      state: { 
+        appointment,
+        professionalName: selectedProfessional?.name 
+      } 
+    })
+    reset()
   }
 
   const getConsultationTypeLabel = (type: string) => {
     return type === 'primeira_consulta' ? 'Primeira consulta' : 'Consulta de retorno'
   }
 
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="text-center space-y-4">
+          <Skeleton className="h-16 w-16 rounded-2xl mx-auto" />
+          <Skeleton className="h-8 w-3/4 mx-auto" />
+          <Skeleton className="h-4 w-1/2 mx-auto" />
+        </div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </div>
+    )
+  }
+
+  if (!appointment) {
+    return (
+      <div className="space-y-8">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto">
+            <AlertCircle className="w-8 h-8 text-amber-600" />
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold text-foreground mb-2">
+              Aguardando Confirmação
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              Estamos processando seu agendamento. Isso pode levar alguns segundos...
+            </p>
+          </div>
+        </div>
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Seu pagamento foi confirmado. Aguarde enquanto finalizamos seu agendamento.
+          </AlertDescription>
+        </Alert>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8">
       <div className="text-center space-y-4">
-        <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
-          <CheckCircle className="w-8 h-8 text-primary" />
+        <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto">
+          <PartyPopper className="w-8 h-8 text-green-600" />
         </div>
         <div>
           <h2 className="text-3xl font-bold text-foreground mb-2">
-            Confirmação do agendamento
+            Agendamento Confirmado!
           </h2>
           <p className="text-muted-foreground text-lg">
-            Revise os dados antes de confirmar seu agendamento
+            Sua consulta foi agendada com sucesso
           </p>
         </div>
       </div>
@@ -162,44 +231,40 @@ export default function ConfirmationStep() {
       </div>
 
       {/* Informações importantes */}
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
+      <Alert className="bg-green-50 border-green-200">
+        <CheckCircle className="h-4 w-4 text-green-600" />
         <AlertDescription>
           <div className="space-y-2">
-            <p className="font-medium">Informações importantes:</p>
-            <ul className="space-y-1 text-sm">
+            <p className="font-medium text-green-800">Informações importantes:</p>
+            <ul className="space-y-1 text-sm text-green-700">
               <li className="flex items-start space-x-2">
-                <CheckCircle className="h-3 w-3 mt-0.5 flex-shrink-0 text-primary" />
+                <CheckCircle className="h-3 w-3 mt-0.5 flex-shrink-0 text-green-600" />
                 <span>Chegue com 15 minutos de antecedência</span>
               </li>
               <li className="flex items-start space-x-2">
-                <CheckCircle className="h-3 w-3 mt-0.5 flex-shrink-0 text-primary" />
+                <CheckCircle className="h-3 w-3 mt-0.5 flex-shrink-0 text-green-600" />
                 <span>Traga um documento de identidade</span>
               </li>
               <li className="flex items-start space-x-2">
-                <CheckCircle className="h-3 w-3 mt-0.5 flex-shrink-0 text-primary" />
+                <CheckCircle className="h-3 w-3 mt-0.5 flex-shrink-0 text-green-600" />
                 <span>Em caso de cancelamento, avise com 24h de antecedência</span>
               </li>
               <li className="flex items-start space-x-2">
-                <CheckCircle className="h-3 w-3 mt-0.5 flex-shrink-0 text-primary" />
-                <span>Você receberá um email de confirmação</span>
+                <CheckCircle className="h-3 w-3 mt-0.5 flex-shrink-0 text-green-600" />
+                <span>Você receberá um email de confirmação em breve</span>
               </li>
             </ul>
           </div>
         </AlertDescription>
       </Alert>
 
-      <div className="flex justify-between pt-4">
-        <Button variant="outline" onClick={prevStep} size="lg">
-          Voltar
-        </Button>
+      <div className="flex justify-center pt-4">
         <Button 
-          onClick={handleConfirmAppointment}
-          disabled={isCreating}
-          className="min-w-[160px]"
+          onClick={handleFinish}
+          className="min-w-[200px]"
           size="lg"
         >
-          {isCreating ? 'Confirmando...' : 'Confirmar agendamento'}
+          Finalizar
         </Button>
       </div>
     </div>

@@ -3,11 +3,12 @@ import DateSelectionStep from '@/components/appointment/DateSelectionStep'
 import ProfessionalSelectionStep from '@/components/appointment/ProfessionalSelectionStep'
 import TimeSelectionStep from '@/components/appointment/TimeSelectionStep'
 import PatientFormStep from '@/components/appointment/PatientFormStep'
+import PaymentStep from '@/components/appointment/PaymentStep'
 import ConfirmationStep from '@/components/appointment/ConfirmationStep'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
-import { ArrowLeft, Calendar, User, Clock, FileText, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Calendar, User, Clock, FileText, CreditCard, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export default function AppointmentPage() {
@@ -24,6 +25,8 @@ export default function AppointmentPage() {
       case 4:
         return <PatientFormStep />
       case 5:
+        return <PaymentStep />
+      case 6:
         return <ConfirmationStep />
       default:
         return <DateSelectionStep />
@@ -35,10 +38,11 @@ export default function AppointmentPage() {
     'Escolher Profissional', 
     'Selecionar Horário',
     'Dados Pessoais',
+    'Pagamento',
     'Confirmação'
   ]
 
-  const stepIcons = [Calendar, User, Clock, FileText, CheckCircle]
+  const stepIcons = [Calendar, User, Clock, FileText, CreditCard, CheckCircle]
 
   return (
     <div className="min-h-screen bg-background">
@@ -82,11 +86,11 @@ export default function AppointmentPage() {
           <CardHeader>
             <CardTitle className="text-center">Progresso do Agendamento</CardTitle>
             <CardDescription className="text-center">
-              Passo {currentStep} de 5
+              Passo {currentStep} de 6
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <Progress value={(currentStep / 5) * 100} className="h-2" />
+            <Progress value={(currentStep / 6) * 100} className="h-2" />
             
             <div className="flex items-center justify-between">
               {stepTitles.map((title, index) => {

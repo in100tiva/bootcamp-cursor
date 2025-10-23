@@ -46,8 +46,26 @@ export interface Appointment {
   appointment_date: string
   appointment_time: string
   consultation_type: 'primeira_consulta' | 'retorno'
-  status: 'pendente' | 'confirmado' | 'cancelado' | 'concluido'
+  status: 'aguardando_pagamento' | 'pendente' | 'confirmado' | 'cancelado' | 'concluido'
   cancellation_reason?: string
+  payment_id?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Payment {
+  id: string
+  abacate_pay_id: string
+  amount: number
+  status: 'PENDING' | 'PAID' | 'EXPIRED' | 'CANCELLED'
+  qr_code_base64: string
+  br_code: string
+  expires_at: string
+  paid_at?: string
+  patient_name: string
+  patient_email: string
+  patient_cpf: string
+  metadata?: any
   created_at: string
   updated_at: string
 }

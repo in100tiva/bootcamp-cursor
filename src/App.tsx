@@ -15,6 +15,7 @@ import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 import AppointmentsPage from './pages/admin/AppointmentsPage'
 import ProfessionalsPage from './pages/admin/ProfessionalsPage'
 import ReportsPage from './pages/admin/ReportsPage'
+import PaymentsPage from './pages/admin/PaymentsPage'
 
 // Components
 import ProtectedRoute from './components/ProtectedRoute'
@@ -73,6 +74,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <ReportsPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/admin/payments" 
+                  element={
+                    <ProtectedRoute>
+                      <PaymentsPage />
                     </ProtectedRoute>
                   } 
                 />

@@ -76,3 +76,6 @@ Os componentes shadcn/ui devem agora carregar corretamente com:
 - Evite atualizar para versões major diferentes sem verificar compatibilidade
 - O projeto usa Tailwind CSS v3 com variáveis CSS para temas (configurado corretamente)
 
+
+
+
